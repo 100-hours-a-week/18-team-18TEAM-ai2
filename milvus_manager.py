@@ -31,11 +31,17 @@ class MilvusManager:
         uri = os.getenv("MILVUS_URI", "http://localhost:19530")
         token = os.getenv("MILVUS_TOKEN", "")
         logger.info("Milvus 연결 중: %s", uri)
-        kwargs: Dict[str, Any] = {"uri": uri}
-        if token:
-            kwargs["token"] = token
-        self.client = AsyncMilvusClient(**kwargs)
-        logger.info("Milvus 연결 완료")
+        try:
+            kwargs: Dict[str, Any] = {"uri": uri}
+            if token:
+                kwargs["token"] = token
+            self.client = AsyncMilvusClient(**kwargs)
+            await self.client.list_collections()  # 실제 연결 확인
+            logger.info("Milvus 연결 완료")
+        except Exception as e:
+            logger.error("Milvus 연결 실패: %s", e)
+            self.client = None
+            raise
 
     async def create_collection(
         self,

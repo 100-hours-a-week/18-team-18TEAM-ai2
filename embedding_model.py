@@ -25,10 +25,14 @@ class EmbeddingModel:
     def __init__(self) -> None:
         if EmbeddingModel._model is None:
             logger.info("임베딩 모델 로딩 중: %s", self.MODEL_NAME)
-            from sentence_transformers import SentenceTransformer
+            try:
+                from sentence_transformers import SentenceTransformer
 
-            EmbeddingModel._model = SentenceTransformer(self.MODEL_NAME)
-            logger.info("임베딩 모델 로딩 완료 (dim=%d)", self.DIMENSION)
+                EmbeddingModel._model = SentenceTransformer(self.MODEL_NAME)
+                logger.info("임베딩 모델 로딩 완료 (dim=%d)", self.DIMENSION)
+            except Exception as e:
+                logger.error("임베딩 모델 로딩 실패: %s", e)
+                raise
 
     @property
     def is_loaded(self) -> bool:
