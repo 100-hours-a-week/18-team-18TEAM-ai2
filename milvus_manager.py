@@ -109,7 +109,11 @@ class MilvusManager:
         collection_name: str,
         data: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """벡터 + 메타데이터를 컬렉션에 삽입한다."""
+        """벡터 + 메타데이터를 컬렉션에 삽입한다. 컬렉션이 없으면 자동 생성."""
+        collections = await self.client.list_collections()
+        if collection_name not in collections:
+            logger.info("컬렉션 '%s' 없음 - 자동 생성", collection_name)
+            await self.create_collection(name=collection_name)
         result = await self.client.insert(
             collection_name=collection_name,
             data=data,
@@ -128,7 +132,11 @@ class MilvusManager:
         limit: int = 5,
         output_fields: Optional[List[str]] = None,
     ) -> List[List[Dict[str, Any]]]:
-        """KNN 유사도 검색을 수행한다."""
+        """KNN 유사도 검색을 수행한다. 컬렉션이 없으면 ValueError 발생."""
+        collections = await self.client.list_collections()
+        if collection_name not in collections:
+            raise ValueError(f"컬렉션 '{collection_name}'이 존재하지 않습니다.")
+
         if output_fields is None:
             output_fields = ["text", "category", "metadata"]
 

@@ -167,12 +167,15 @@ async def search(name: str, req: SearchRequest) -> SearchResponse:
     """텍스트로 유사도 검색한다. 자동으로 임베딩 후 KNN 검색."""
     query_vector = app.state.model.encode(req.query)
 
-    results = await app.state.milvus.search(
-        collection_name=name,
-        query_vectors=[query_vector],
-        limit=req.limit,
-        output_fields=req.output_fields,
-    )
+    try:
+        results = await app.state.milvus.search(
+            collection_name=name,
+            query_vectors=[query_vector],
+            limit=req.limit,
+            output_fields=req.output_fields,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
     hits = []
     if results:
@@ -192,12 +195,15 @@ async def search(name: str, req: SearchRequest) -> SearchResponse:
 @app.post("/collection/{name}/search/vector", response_model=SearchResponse)
 async def search_by_vector(name: str, req: SearchByVectorRequest) -> SearchResponse:
     """벡터로 직접 유사도 검색한다."""
-    results = await app.state.milvus.search(
-        collection_name=name,
-        query_vectors=[req.query_vector],
-        limit=req.limit,
-        output_fields=req.output_fields,
-    )
+    try:
+        results = await app.state.milvus.search(
+            collection_name=name,
+            query_vectors=[req.query_vector],
+            limit=req.limit,
+            output_fields=req.output_fields,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
     hits = []
     if results:
